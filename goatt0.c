@@ -1,51 +1,107 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "monty.h"
 
-#define STACK_SIZE 100
-
-typedef struct Stack
+/**
+ * push - Pushes an element to the stack.
+ * @stack: Double pointer to the stack.
+ * @line_number: Line number in the file.
+ */
+void push(stack_t **stack, unsigned int line_number)
 {
-	int data[STACK_SIZE];
-	int top;
-} Stack;
+	stack_t *new_node;
+	char *arg = strtok(NULL, " \t\n");
+	int value;
 
-void push(Stack *stack, int value)
-{
-	if (stack->top == STACK_SIZE - 1)
-{
-	printf("Error: Stack Overflow\n");
-	exit(EXIT_FAILURE);
-    }
+	if (arg == NULL || !isdigit(*arg))
+	{
+		fprintf(stderr, "L%d: usage: push integer\n", line_number);
+		exit(EXIT_FAILURE);
+	}
 
-	stack->top++;
-	stack->data[stack->top] = value;
+	value = atoi(arg);
+
+	new_node = malloc(sizeof(stack_t));
+	if (new_node == NULL)
+	{
+		fprintf(stderr, "Error: malloc failed\n");
+		exit(EXIT_FAILURE);
+	}
+
+	new_node->n = value;
+	new_node->prev = NULL;
+	new_node->next = *stack;
+
+	if (*stack != NULL)
+		(*stack)->prev = new_node;
+
+	*stack = new_node;
 }
 
-void pall(Stack *stack)
+/**
+ * pall - Prints all the values on the stack.
+ * @stack: Double pointer to the stack.
+ * @line_number: Line number in the file.
+ */
+void pall(stack_t **stack, unsigned int line_number)
 {
-	if (stack->top == -1)
-{
-	return;
-/* Stack is empty, nothing to print */
-    }
+	stack_t *current = *stack;
 
-	int i;
-	for (i = stack->top; i >= 0; i--)
-{
-	printf("%d\n", stack->data[i]);
+	(void)line_number;
+	while (current != NULL)
+	{
+		printf("%d\n", current->n);
+		current = current->next;
 	}
 }
 
-int main(void)
+/**
+ * pop - Removes the top element of the stack.
+ * @stack: Double pointer to the stack.
+ * @line_number: Line number in the file.
+ */
+void pop(stack_t **stack, unsigned int line_number)
 {
-	Stack stack;
-	stack.top = -1;
+	stack_t *temp;
 
-/* Example usage */
-	push(&stack, 5);
-	push(&stack, 10);
-	push(&stack, 15);
-	pall(&stack);
+	if (*stack == NULL)
+	{
+		fprintf(stderr, "L%d: can't pop an empty stack\n", line_number);
+		exit(EXIT_FAILURE);
+	}
 
-	return (0);
+	temp = *stack;
+	*stack = (*stack)->next;
+	free(temp);
+}
+
+/**
+ * pint - Prints the value at the top of the stack.
+ * @stack: Double pointer to the stack.
+ * @line_number: Line number in the file.
+ */
+void pint(stack_t **stack, unsigned int line_number)
+{
+	if (*stack == NULL)
+	{
+		fprintf(stderr, "L%d: can't pint, stack empty\n", line_number);
+		exit(EXIT_FAILURE);
+	}
+
+	printf("%d\n", (*stack)->n);
+}
+
+
+/**
+ * free_stack - Frees a stack.
+ * @stack: Pointer to the top of the stack.
+ */
+void free_stack(stack_t *stack)
+{
+	stack_t *current;
+
+	while (stack != NULL)
+	{
+		current = stack;
+		stack = stack->next;
+		free(current);
+	}
 }
